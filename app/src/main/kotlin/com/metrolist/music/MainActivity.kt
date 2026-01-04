@@ -71,6 +71,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -258,7 +259,7 @@ class MainActivity : ComponentActivity() {
         bindService(
             Intent(this, MusicService::class.java),
             serviceConnection,
-            Context.BIND_AUTO_CREATE
+            BIND_AUTO_CREATE
         )
     }
 
@@ -347,6 +348,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun MetrolistApp(
         latestVersionName: String,
@@ -361,7 +363,7 @@ class MainActivity : ComponentActivity() {
     ) {
         val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
 
-        val context = androidx.compose.ui.platform.LocalContext.current
+        val context = LocalContext.current
 
         LaunchedEffect(checkForUpdates) {
             if (checkForUpdates) {
