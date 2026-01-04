@@ -338,6 +338,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
+            val updateAvailableTitle = stringResource(R.string.update_available_title)
 
             LaunchedEffect(checkForUpdates) {
                 if (checkForUpdates) {
@@ -358,7 +359,7 @@ class MainActivity : ComponentActivity() {
 
                                     val notif = NotificationCompat.Builder(this@MainActivity, "updates")
                                         .setSmallIcon(R.drawable.update)
-                                        .setContentTitle(getString(R.string.update_available_title))
+                                        .setContentTitle(updateAvailableTitle)
                                         .setContentText(it)
                                         .setContentIntent(pending)
                                         .setAutoCancel(true)
