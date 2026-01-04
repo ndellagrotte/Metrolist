@@ -92,6 +92,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -294,7 +295,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        
+
         // Force high refresh rate (120Hz) for smooth animations
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val display = display ?: windowManager.defaultDisplay
@@ -332,47 +333,75 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
+            MetrolistApp(
+                latestVersionName = latestVersionName,
+                onLatestVersionNameChange = { latestVersionName = it },
+                playerConnection = playerConnection,
+                database = database,
+                downloadUtil = downloadUtil,
+                syncUtils = syncUtils,
+                pendingIntent = pendingIntent,
+                onPendingIntentHandled = { pendingIntent = null },
+                onDeepLinkIntent = ::handleDeepLinkIntent
+            )
+        }
+    }
 
-            LaunchedEffect(checkForUpdates) {
-                if (checkForUpdates) {
-                    withContext(Dispatchers.IO) {
-                        if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
-                            val updatesEnabled = dataStore.get(CheckForUpdatesKey, true)
-                            val notifEnabled = dataStore.get(UpdateNotificationsEnabledKey, true)
-                            if (!updatesEnabled) return@withContext
-                            Updater.getLatestVersionName().onSuccess {
-                                latestVersionName = it
-                                if (it != BuildConfig.VERSION_NAME && notifEnabled) {
-                                    val downloadUrl = Updater.getLatestDownloadUrl()
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
+    @Composable
+    private fun MetrolistApp(
+        latestVersionName: String,
+        onLatestVersionNameChange: (String) -> Unit,
+        playerConnection: PlayerConnection?,
+        database: MusicDatabase,
+        downloadUtil: DownloadUtil,
+        syncUtils: SyncUtils,
+        pendingIntent: Intent?,
+        onPendingIntentHandled: () -> Unit,
+        onDeepLinkIntent: (Intent, NavHostController) -> Unit
+    ) {
+        val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
 
-                                    val flags = PendingIntent.FLAG_UPDATE_CURRENT or
-                                            (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
-                                    val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
+        val context = androidx.compose.ui.platform.LocalContext.current
 
-                                    val notif = NotificationCompat.Builder(this@MainActivity, "updates")
-                                        .setSmallIcon(R.drawable.update)
-                                        .setContentTitle(getString(R.string.update_available_title))
-                                        .setContentText(it)
-                                        .setContentIntent(pending)
-                                        .setAutoCancel(true)
-                                        .build()
-                                    
-                                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                                        ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                                        NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
-                                    }
+        LaunchedEffect(checkForUpdates) {
+            if (checkForUpdates) {
+                withContext(Dispatchers.IO) {
+                    if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
+                        val updatesEnabled = dataStore.get(CheckForUpdatesKey, true)
+                        val notifEnabled = dataStore.get(UpdateNotificationsEnabledKey, true)
+                        if (!updatesEnabled) return@withContext
+                        Updater.getLatestVersionName().onSuccess {
+                            onLatestVersionNameChange(it)
+                            if (it != BuildConfig.VERSION_NAME && notifEnabled) {
+                                val downloadUrl = Updater.getLatestDownloadUrl()
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
+
+                                val flags = PendingIntent.FLAG_UPDATE_CURRENT or
+                                        (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
+                                val pending = PendingIntent.getActivity(context, 1001, intent, flags)
+
+                                val notif = NotificationCompat.Builder(context, "updates")
+                                    .setSmallIcon(R.drawable.update)
+                                    .setContentTitle(context.getString(R.string.update_available_title))
+                                    .setContentText(it)
+                                    .setContentIntent(pending)
+                                    .setAutoCancel(true)
+                                    .build()
+
+                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                                    NotificationManagerCompat.from(context).notify(1001, notif)
                                 }
                             }
                         }
                     }
-                } else {
-                    // when the user disables updates, reset to the current version
-                    // to trick the app into thinking it's on the latest version
-                    latestVersionName = BuildConfig.VERSION_NAME
                 }
+            } else {
+                // when the user disables updates, reset to the current version
+                // to trick the app into thinking it's on the latest version
+                onLatestVersionNameChange(BuildConfig.VERSION_NAME)
             }
+        }
 
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -394,39 +423,39 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(DefaultThemeColor)
             }
 
-            LaunchedEffect(playerConnection, enableDynamicTheme) {
-                val playerConnection = playerConnection
-                if (!enableDynamicTheme || playerConnection == null) {
-                    themeColor = DefaultThemeColor
-                    return@LaunchedEffect
-                }
+        LaunchedEffect(playerConnection, enableDynamicTheme) {
+            val currentPlayerConnection = playerConnection
+            if (!enableDynamicTheme || currentPlayerConnection == null) {
+                themeColor = DefaultThemeColor
+                return@LaunchedEffect
+            }
 
-                playerConnection.service.currentMediaMetadata.collectLatest { song ->
-                    if (song?.thumbnailUrl != null) {
-                        withContext(Dispatchers.IO) {
-                            try {
-                                val result = imageLoader.execute(
-                                    ImageRequest.Builder(this@MainActivity)
-                                        .data(song.thumbnailUrl)
-                                        .allowHardware(false)
-                                        .memoryCachePolicy(CachePolicy.ENABLED)
-                                        .diskCachePolicy(CachePolicy.ENABLED)
-                                        .networkCachePolicy(CachePolicy.ENABLED)
-                                        .crossfade(false)
-                                        .build()
-                                )
-                                themeColor = result.image?.toBitmap()?.extractThemeColor()
-                                    ?: DefaultThemeColor
-                            } catch (e: Exception) {
-                                // Fallback to default on error
-                                themeColor = DefaultThemeColor
-                            }
+            currentPlayerConnection.service.currentMediaMetadata.collectLatest { song ->
+                if (song?.thumbnailUrl != null) {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val result = context.imageLoader.execute(
+                                ImageRequest.Builder(context)
+                                    .data(song.thumbnailUrl)
+                                    .allowHardware(false)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .networkCachePolicy(CachePolicy.ENABLED)
+                                    .crossfade(false)
+                                    .build()
+                            )
+                            themeColor = result.image?.toBitmap()?.extractThemeColor()
+                                ?: DefaultThemeColor
+                        } catch (e: Exception) {
+                            // Fallback to default on error
+                            themeColor = DefaultThemeColor
                         }
-                    } else {
-                        themeColor = DefaultThemeColor
                     }
+                } else {
+                    themeColor = DefaultThemeColor
                 }
             }
+        }
 
             MetrolistTheme(
                 darkTheme = useDarkTheme,
@@ -681,20 +710,24 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(Unit) {
                         if (pendingIntent != null) {
-                            handleDeepLinkIntent(pendingIntent!!, navController)
-                            pendingIntent = null
+                            onDeepLinkIntent(pendingIntent, navController)
+                            onPendingIntentHandled()
                         } else {
-                            handleDeepLinkIntent(intent, navController)
+                            (context as? ComponentActivity)?.intent?.let { activityIntent ->
+                                onDeepLinkIntent(activityIntent, navController)
+                            }
                         }
                     }
 
                     DisposableEffect(Unit) {
                         val listener = Consumer<Intent> { intent ->
-                            handleDeepLinkIntent(intent, navController)
+                            onDeepLinkIntent(intent, navController)
                         }
 
-                        addOnNewIntentListener(listener)
-                        onDispose { removeOnNewIntentListener(listener) }
+                        (context as? ComponentActivity)?.addOnNewIntentListener(listener)
+                        onDispose {
+                            (context as? ComponentActivity)?.removeOnNewIntentListener(listener)
+                        }
                     }
 
                     val currentTitleRes = remember(navBackStackEntry) {
@@ -1005,7 +1038,7 @@ class MainActivity : ComponentActivity() {
                                             navController = navController,
                                             scrollBehavior = topAppBarScrollBehavior,
                                             latestVersionName = latestVersionName,
-                                            activity = this@MainActivity,
+                                            activity = context as ComponentActivity,
                                             snackbarHostState = snackbarHostState
                                         )
                                     }
