@@ -81,7 +81,26 @@ android {
         }
     }
 
-    // Removed manual signingConfigs configuration to rely on Android Gradle Plugin defaults for debug builds
+    signingConfigs {
+        create("persistentDebug") {
+            storeFile = file("persistent-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+        create("release") {
+            storeFile = file("keystore/release.keystore")
+            storePassword = System.getenv("STORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+        }
+        getByName("debug") {
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storePassword = "android"
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+        }
+    }
 
     buildTypes {
         release {
@@ -97,7 +116,11 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
-            // Use default debug signing config provided by AGP
+            signingConfig = if (System.getenv("GITHUB_EVENT_NAME") == "pull_request") {
+                signingConfigs.getByName("debug")
+            } else {
+                signingConfigs.getByName("persistentDebug")
+            }
         }
     }
 
