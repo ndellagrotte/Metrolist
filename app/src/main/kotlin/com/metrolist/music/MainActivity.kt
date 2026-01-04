@@ -506,8 +506,7 @@ class MainActivity : ComponentActivity() {
                         val currentRoute = navBackStackEntry?.destination?.route
                         currentRoute == null ||
                                 navigationItems.fastAny { it.route == currentRoute } ||
-                                currentRoute.startsWith("search/") ||
-                                currentRoute == "equalizer"
+                                currentRoute.startsWith("search/")
                     }
 
                     val isLandscape = remember(configuration.screenWidthDp, configuration.screenHeightDp) {
@@ -542,13 +541,6 @@ class MainActivity : ComponentActivity() {
                                     MiniPlayerHeight,
                             expandedBound = maxHeight,
                         )
-
-                    // Auto-close equalizer when player is expanded
-                    LaunchedEffect(playerBottomSheetState.isExpanded) {
-                        if (playerBottomSheetState.isExpanded && navController.currentDestination?.route == "equalizer") {
-                            navController.popBackStack()
-                        }
-                    }
 
                     val playerAwareWindowInsets = remember(
                         bottomInset,
@@ -816,11 +808,7 @@ class MainActivity : ComponentActivity() {
                                         if (playerBottomSheetState.isExpanded) {
                                             playerBottomSheetState.collapseSoft()
                                         }
-                                        
-                                        if (navController.currentDestination?.route == "equalizer" &&
-                                            navController.previousBackStackEntry?.destination?.route == screen.route) {
-                                            navController.popBackStack()
-                                        } else if (isSelected) {
+                                        if (isSelected) {
                                             navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                             coroutineScope.launch {
                                                 searchBarScrollBehavior.state.resetHeightOffset()
@@ -913,11 +901,7 @@ class MainActivity : ComponentActivity() {
                                         if (playerBottomSheetState.isExpanded) {
                                             playerBottomSheetState.collapseSoft()
                                         }
-                                        
-                                        if (navController.currentDestination?.route == "equalizer" &&
-                                            navController.previousBackStackEntry?.destination?.route == screen.route) {
-                                            navController.popBackStack()
-                                        } else if (isSelected) {
+                                        if (isSelected) {
                                             navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                             coroutineScope.launch {
                                                 searchBarScrollBehavior.state.resetHeightOffset()
