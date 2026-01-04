@@ -122,6 +122,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
+import androidx.navigation.activity
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -360,10 +361,10 @@ class MainActivity : ComponentActivity() {
         pendingIntent: Intent?,
         onPendingIntentHandled: () -> Unit,
         onDeepLinkIntent: (Intent, NavHostController) -> Unit
-    ) {
+    )   {
+        setContent {
         val checkForUpdates by rememberPreference(CheckForUpdatesKey, defaultValue = true)
-
-        val context = LocalContext.current
+        val updateAvailableTitle = stringResource(R.string.update_available_title)
 
         LaunchedEffect(checkForUpdates) {
             if (checkForUpdates) {
@@ -373,26 +374,26 @@ class MainActivity : ComponentActivity() {
                         val notifEnabled = dataStore.get(UpdateNotificationsEnabledKey, true)
                         if (!updatesEnabled) return@withContext
                         Updater.getLatestVersionName().onSuccess {
-                            onLatestVersionNameChange(it)
+                            this@MainActivity.latestVersionName = it
                             if (it != BuildConfig.VERSION_NAME && notifEnabled) {
                                 val downloadUrl = Updater.getLatestDownloadUrl()
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
+                                val intent = Intent(Intent.ACTION_VIEW, downloadUrl.toUri())
 
                                 val flags = PendingIntent.FLAG_UPDATE_CURRENT or
                                         (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
-                                val pending = PendingIntent.getActivity(context, 1001, intent, flags)
+                                val pending = PendingIntent.getActivity(this@MainActivity, 1001, intent, flags)
 
-                                val notif = NotificationCompat.Builder(context, "updates")
+                                val notif = NotificationCompat.Builder(this@MainActivity, "updates")
                                     .setSmallIcon(R.drawable.update)
-                                    .setContentTitle(context.getString(R.string.update_available_title))
+                                    .setContentTitle(updateAvailableTitle)
                                     .setContentText(it)
                                     .setContentIntent(pending)
                                     .setAutoCancel(true)
                                     .build()
 
                                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                                    NotificationManagerCompat.from(context).notify(1001, notif)
+                                    ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                                    NotificationManagerCompat.from(this@MainActivity).notify(1001, notif)
                                 }
                             }
                         }
@@ -401,7 +402,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 // when the user disables updates, reset to the current version
                 // to trick the app into thinking it's on the latest version
-                onLatestVersionNameChange(BuildConfig.VERSION_NAME)
+                this@MainActivity.latestVersionName = BuildConfig.VERSION_NAME
             }
         }
 
@@ -436,8 +437,8 @@ class MainActivity : ComponentActivity() {
                 if (song?.thumbnailUrl != null) {
                     withContext(Dispatchers.IO) {
                         try {
-                            val result = context.imageLoader.execute(
-                                ImageRequest.Builder(context)
+                            val result = imageLoader.execute(
+                                ImageRequest.Builder(this@MainActivity)
                                     .data(song.thumbnailUrl)
                                     .allowHardware(false)
                                     .memoryCachePolicy(CachePolicy.ENABLED)
@@ -710,25 +711,36 @@ class MainActivity : ComponentActivity() {
                     }
                     val snackbarHostState = remember { SnackbarHostState() }
 
+//                    val context = LocalContext.current
+//
+//                    DisposableEffect(Unit) {
+//                        val listener = Consumer<Intent> { intent ->
+//                            // Handle the new intent here
+//                            // For example:
+//                            // onDeepLinkIntent(intent, navController)
+//                        }
+//
+//                        val activity = context as? ComponentActivity
+//                        activity?.addOnNewIntentListener(listener)
+//
+//                        onDispose {
+//                            activity?.removeOnNewIntentListener(listener)
+//                        }
+//                    }
+
+                    val context = LocalContext.current
+
                     LaunchedEffect(Unit) {
                         if (pendingIntent != null) {
+                            // Assuming onDeepLinkIntent is passed as a parameter to MetrolistApp
+                            // or you are accessing the internal method from MainActivity
                             onDeepLinkIntent(pendingIntent, navController)
                             onPendingIntentHandled()
                         } else {
+                            // Now context refers to the variable defined above
                             (context as? ComponentActivity)?.intent?.let { activityIntent ->
                                 onDeepLinkIntent(activityIntent, navController)
                             }
-                        }
-                    }
-
-                    DisposableEffect(Unit) {
-                        val listener = Consumer<Intent> { intent ->
-                            onDeepLinkIntent(intent, navController)
-                        }
-
-                        (context as? ComponentActivity)?.addOnNewIntentListener(listener)
-                        onDispose {
-                            (context as? ComponentActivity)?.removeOnNewIntentListener(listener)
                         }
                     }
 
@@ -886,7 +898,10 @@ class MainActivity : ComponentActivity() {
                                                     } else {
                                                         val slideOffset =
                                                             (bottomInset + NavigationBarHeight) *
-                                                                    playerBottomSheetState.progress.coerceIn(0f, 1f)
+                                                                    playerBottomSheetState.progress.coerceIn(
+                                                                        0f,
+                                                                        1f
+                                                                    )
                                                         val hideOffset =
                                                             (bottomInset + NavigationBarHeight) * (1 - navigationBarHeight / NavigationBarHeight)
                                                         IntOffset(
