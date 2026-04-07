@@ -492,6 +492,7 @@
     <string name="import_profile">Import profile</string>
     <string name="system_equalizer">System equalizer</string>
     <string name="eq_disabled">Disabled</string>
+    <string name="eq_wizard">AutoEQ Wizard</string>
     <plurals name="band_count">
         <item quantity="one">%d band</item>
         <item quantity="other">%d bands</item>
