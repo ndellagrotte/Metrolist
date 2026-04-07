@@ -27,7 +27,8 @@ import com.metrolist.music.eq.data.SavedEQProfile
 @Composable
 fun EqScreen(
     viewModel: EQViewModel = hiltViewModel(),
-    playbackState: PlaybackState? = null
+    playbackState: PlaybackState? = null,
+    onNavigateToWizard: (() -> Unit)? = null
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -87,7 +88,8 @@ fun EqScreen(
             // Launch file picker for .txt files
             filePickerLauncher.launch("text/plain")
         },
-        onDeleteProfile = { viewModel.deleteProfile(it) }
+        onDeleteProfile = { viewModel.deleteProfile(it) },
+        onNavigateToWizard = onNavigateToWizard
     )
 
     // Success Snackbar
@@ -128,7 +130,8 @@ private fun EqScreenContent(
     activeProfileId: String?,
     onProfileSelected: (String?) -> Unit,
     onImportCustomEQ: () -> Unit,
-    onDeleteProfile: (String) -> Unit
+    onDeleteProfile: (String) -> Unit,
+    onNavigateToWizard: (() -> Unit)? = null
 ) {
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
@@ -160,11 +163,21 @@ private fun EqScreenContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                IconButton(onClick = onImportCustomEQ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Import Custom EQ"
-                    )
+                Row {
+                    if (onNavigateToWizard != null) {
+                        IconButton(onClick = onNavigateToWizard) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "EQ Wizard"
+                            )
+                        }
+                    }
+                    IconButton(onClick = onImportCustomEQ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Import Custom EQ"
+                        )
+                    }
                 }
             }
 
