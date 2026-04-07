@@ -24,6 +24,8 @@ data class SavedEQProfile(
     val deviceModel: String,              // e.g., "Sony WH-1000XM4"
     val bands: List<ParametricEQBand>,    // EQ bands
     val preamp: Double = 0.0,             // Preamp gain in dB
+    val source: String = "unknown",       // Measurement source (e.g., oratory1990, crinacle)
+    val rig: String = "unknown",          // Measurement rig (e.g., HMS II.3, GRAS 43AG-7)
     val isCustom: Boolean = false,        // Whether this is a custom imported profile
     val isActive: Boolean = false,        // Whether this profile is currently active
     val addedTimestamp: Long = System.currentTimeMillis()
@@ -101,6 +103,27 @@ class EQProfileRepository @Inject constructor(
         }
 
         // Save to SharedPreferences
+        val profilesJson = json.encodeToString<List<SavedEQProfile>>(currentProfiles)
+        prefs.edit { putString(KEY_PROFILES, profilesJson) }
+
+        _profiles.value = currentProfiles
+    }
+
+    /**
+     * Save multiple profiles at once (useful for wizard)
+     */
+    suspend fun saveProfiles(profiles: List<SavedEQProfile>) = withContext(Dispatchers.IO) {
+        val currentProfiles = _profiles.value.toMutableList()
+
+        profiles.forEach { newProfile ->
+            val existingIndex = currentProfiles.indexOfFirst { it.id == newProfile.id }
+            if (existingIndex >= 0) {
+                currentProfiles[existingIndex] = newProfile
+            } else {
+                currentProfiles.add(newProfile)
+            }
+        }
+
         val profilesJson = json.encodeToString<List<SavedEQProfile>>(currentProfiles)
         prefs.edit { putString(KEY_PROFILES, profilesJson) }
 
