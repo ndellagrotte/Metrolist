@@ -1,0 +1,31 @@
+package com.metrolist.music.ui.screens.wizard.databaseUtil.models
+
+import kotlinx.serialization.Serializable
+
+/**
+ * Represents a searchable entry in the measurement database.
+ * Corresponds to the entries structure in the AutoEQ repository.
+ */
+@Serializable
+data class Entry(
+    val label: String,          // Display name (headphone name)
+    val form: String,           // Form factor: "in-ear", "over-ear", "earbud"
+    val rig: String,            // Measurement rig: "HMS II.3", "Bruel & Kjaer 5128", "711", etc.
+    val source: String,         // Source: "oratory1990", "crinacle", "HypetheSonics", etc.
+    val formDirectory: String   // Actual directory name in filesystem (e.g., "over-ear", "711 in-ear")
+) {
+    fun getDisplayString(): String {
+        val parts = mutableListOf(label)
+        if (source != "unknown") parts.add("by $source")
+        if (rig != "unknown") parts.add("on $rig")
+        return parts.joinToString(" ")
+    }
+
+    fun matchesQuery(query: String): Boolean {
+        val lowerQuery = query.lowercase()
+        return label.lowercase().contains(lowerQuery) ||
+               source.lowercase().contains(lowerQuery) ||
+               rig.lowercase().contains(lowerQuery) ||
+               form.lowercase().contains(lowerQuery)
+    }
+}
