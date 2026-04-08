@@ -323,11 +323,10 @@ class WizardViewModel @Inject constructor(
 
                 // Create SavedEQProfile objects from selected variants
                 val profiles = mutableListOf<SavedEQProfile>()
+                val entries = autoEqSearch.getVariantsForModel(modelName)
 
                 for (variant in selectedVariants) {
                     try {
-                        // Get all variants for the model to find the matching entry
-                        val entries = autoEqSearch.getVariantsForModel(modelName)
                         val matchingEntry = entries.find {
                             it.label == variant.name &&
                                     it.source == variant.source &&
