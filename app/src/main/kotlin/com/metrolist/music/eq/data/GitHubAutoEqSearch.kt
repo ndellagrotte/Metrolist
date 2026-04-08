@@ -92,7 +92,6 @@ class GitHubAutoEqSearch(private val context: Context) {
     suspend fun buildIndex(): Boolean = withContext(Dispatchers.IO) {
         try {
             cacheDir.mkdirs()
-            entries.clear()
 
             val treeJson = getCachedOrFetchTree() ?: return@withContext false
             val treeResponse = json.decodeFromString<GitHubTreeResponse>(treeJson)
@@ -108,15 +107,18 @@ class GitHubAutoEqSearch(private val context: Context) {
                         node.path.endsWith(" ParametricEQ.txt")
             }
 
+            val newEntries = mutableListOf<Entry>()
             for (node in eqNodes) {
                 try {
                     val entry = parseEntryFromPath(node.path) ?: continue
-                    entries.add(entry)
+                    newEntries.add(entry)
                 } catch (e: Exception) {
                     // Skip entries that can't be parsed
                 }
             }
 
+            entries.clear()
+            entries.addAll(newEntries)
             isIndexed = true
             println("Indexed ${entries.size} entries from GitHub tree")
             true
