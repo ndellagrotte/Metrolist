@@ -64,6 +64,11 @@ class GitHubAutoEqSearch(private val context: Context) {
     )
 
     /**
+     * Check whether a cached tree file exists (i.e. the database has been downloaded before).
+     */
+    fun isDatabaseCached(): Boolean = treeFile.exists()
+
+    /**
      * Build the search index by fetching the GitHub repo tree.
      * Uses cached tree if available and not stale (<24h old).
      */

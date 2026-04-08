@@ -34,6 +34,12 @@ class WizardViewModel @Inject constructor(
 
     private var searchJob: Job? = null
 
+    init {
+        if (autoEqSearch.isDatabaseCached()) {
+            downloadDatabase()
+        }
+    }
+
     fun downloadDatabase() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
