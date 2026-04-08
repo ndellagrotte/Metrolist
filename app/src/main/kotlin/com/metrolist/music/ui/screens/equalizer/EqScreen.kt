@@ -18,12 +18,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -63,7 +64,7 @@ fun EqScreen(
     val context = LocalContext.current
 
     var showError by remember { mutableStateOf<String?>(null) }
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddMenu by remember { mutableStateOf(false) }
 
     // File picker for custom EQ import
     val filePickerLauncher = rememberLauncherForActivityResult(
@@ -117,52 +118,19 @@ fun EqScreen(
         activeProfile = activeProfile,
         onProfileSelected = { viewModel.selectProfile(it) },
         onNavigateBack = { navController.navigateUp() },
-        onAddClicked = { showAddDialog = true },
+        showAddMenu = showAddMenu,
+        onAddClicked = { showAddMenu = true },
+        onAddMenuDismissed = { showAddMenu = false },
+        onWizardClicked = {
+            showAddMenu = false
+            navController.navigate("eq_wizard")
+        },
+        onImportClicked = {
+            showAddMenu = false
+            filePickerLauncher.launch("text/plain")
+        },
         onDeleteProfile = { viewModel.deleteProfile(it) }
     )
-
-    // Add profile chooser dialog
-    if (showAddDialog) {
-        AlertDialog(
-            onDismissRequest = { showAddDialog = false },
-            title = { Text(stringResource(R.string.add_profile)) },
-            text = {
-                Column {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.eq_wizard)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.discover_tune),
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            showAddDialog = false
-                            navController.navigate("eq_wizard")
-                        }
-                    )
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.import_from_file)) },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.upload),
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            showAddDialog = false
-                            filePickerLauncher.launch("text/plain")
-                        }
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showAddDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            }
-        )
-    }
 
     // Error dialog
     if (showError != null) {
@@ -209,7 +177,11 @@ private fun EqScreenContent(
     activeProfile: SavedEQProfile?,
     onProfileSelected: (String?) -> Unit,
     onNavigateBack: () -> Unit,
+    showAddMenu: Boolean,
     onAddClicked: () -> Unit,
+    onAddMenuDismissed: () -> Unit,
+    onWizardClicked: () -> Unit,
+    onImportClicked: () -> Unit,
     onDeleteProfile: (String) -> Unit
 ) {
     Scaffold(
@@ -225,11 +197,38 @@ private fun EqScreenContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onAddClicked) {
-                        Icon(
-                            painter = painterResource(R.drawable.add),
-                            contentDescription = stringResource(R.string.import_profile)
-                        )
+                    Box {
+                        IconButton(onClick = onAddClicked) {
+                            Icon(
+                                painter = painterResource(R.drawable.add),
+                                contentDescription = stringResource(R.string.import_profile)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showAddMenu,
+                            onDismissRequest = onAddMenuDismissed
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.eq_wizard)) },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.discover_tune),
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = onWizardClicked
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.import_from_file)) },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.upload),
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = onImportClicked
+                            )
+                        }
                     }
                 }
             )
