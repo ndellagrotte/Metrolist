@@ -45,6 +45,23 @@ class GitHubAutoEqSearch(private val context: Context) {
         private const val RAW_BASE_URL =
             "https://raw.githubusercontent.com/$REPO_OWNER/$REPO_NAME/$BRANCH"
         private const val CACHE_TTL_MS = 24 * 60 * 60 * 1000L // 24 hours
+
+        private val KNOWN_MULTI_WORD_BRANDS = listOf(
+            "Bowers & Wilkins",
+            "Bang & Olufsen",
+            "Master & Dynamic",
+            "Astell & Kern",
+            "64 Audio",
+            "Campfire Audio",
+            "Empire Ears",
+            "Final Audio",
+            "Noble Audio",
+            "Periodic Audio",
+            "Status Audio",
+            "Unique Melody",
+            "Vision Ears",
+            "Tin HiFi",
+        ).sortedByDescending { it.length }
     }
 
     @Serializable
@@ -244,10 +261,8 @@ class GitHubAutoEqSearch(private val context: Context) {
         val lowerQuery = query.lowercase().trim()
 
         val allBrands = entries
-            .map { entry ->
-                val firstWord = entry.label.split(" ", "-", "(")[0]
-                firstWord.trim()
-            }
+            .map { entry -> extractBrand(entry.label) }
+            .filter { it.isNotBlank() }
             .distinct()
 
         if (lowerQuery.isBlank()) {
@@ -350,6 +365,42 @@ class GitHubAutoEqSearch(private val context: Context) {
     // ═══════════════════════════════════════════════════════════
     // PRIVATE HELPERS
     // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Extract the brand name from a headphone label.
+     * Uses a whitelist for known multi-word brands, then falls back to
+     * heuristic extraction that preserves hyphenated brands like "Audio-Technica".
+     */
+    private fun extractBrand(label: String): String {
+        val trimmed = label.trim()
+        if (trimmed.isEmpty()) return trimmed
+
+        // 1. Check whitelist of known multi-word brands (longest match first)
+        for (brand in KNOWN_MULTI_WORD_BRANDS) {
+            if (trimmed.startsWith(brand, ignoreCase = true) &&
+                (trimmed.length == brand.length || !trimmed[brand.length].isLetterOrDigit())
+            ) {
+                return brand
+            }
+        }
+
+        // 2. Clean the label: strip parenthesized content, normalize spaced separators
+        val cleaned = trimmed
+            .replace(Regex("""\s*\([^)]*\)\s*"""), " ")
+            .replace(Regex("""\s+[-\u2014:]\s+"""), " ")  // " - ", " — ", " : "
+            .trim()
+
+        // 3. Split on whitespace only (preserving hyphens within tokens)
+        val tokens = cleaned.split(Regex("\\s+"))
+        if (tokens.isEmpty()) return trimmed
+
+        // 4. If second token is "&", include it and the following word
+        if (tokens.size >= 3 && tokens[1] == "&") {
+            return "${tokens[0]} & ${tokens[2]}"
+        }
+
+        return tokens[0]
+    }
 
     private fun normalizeModelName(modelName: String): String {
         return modelName.replace(Regex("""\s*\([^)]*\)\s*"""), "").trim()
