@@ -61,7 +61,7 @@ import com.metrolist.music.ui.screens.settings.integrations.DiscordSettings
 import com.metrolist.music.ui.screens.settings.integrations.IntegrationScreen
 import com.metrolist.music.ui.screens.settings.integrations.LastFMSettings
 import com.metrolist.music.ui.screens.settings.integrations.ListenTogetherSettings
-import com.metrolist.music.ui.component.BottomSheetState
+
 import com.metrolist.music.ui.screens.wrapped.WrappedScreen
 import com.metrolist.music.utils.rememberEnumPreference
 import com.metrolist.music.utils.rememberPreference
@@ -73,7 +73,6 @@ fun NavGraphBuilder.navigationBuilder(
     latestVersionName: String,
     activity: Activity,
     snackbarHostState: SnackbarHostState,
-    playerBottomSheetState: BottomSheetState,
 ) {
     composable(Screens.Home.route) {
         HomeScreen(navController = navController, snackbarHostState = snackbarHostState)
@@ -424,17 +423,13 @@ fun NavGraphBuilder.navigationBuilder(
         WrappedScreen(navController)
     }
 
-    dialog("equalizer") {
-        EqScreen(onOpenWizard = {
-            playerBottomSheetState.collapseSoft()
-            navController.navigate("eq_wizard")
-        })
+    composable("equalizer") {
+        EqScreen(navController = navController)
     }
 
     composable("eq_wizard") {
         WizardScreen(onNavigateBack = {
-            navController.popBackStack("equalizer", inclusive = true)
-            navController.navigate("equalizer")
+            navController.popBackStack()
         })
     }
 
