@@ -343,6 +343,7 @@ class WizardViewModel @Inject constructor(
                                     rig = variant.rig,
                                     bands = parametricEQ.bands,
                                     preamp = parametricEQ.preamp,
+                                    isCustom = true,
                                     isActive = false
                                 )
                                 profiles.add(profile)
