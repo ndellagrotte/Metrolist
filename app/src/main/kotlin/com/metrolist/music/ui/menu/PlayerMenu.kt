@@ -6,6 +6,10 @@
 package com.metrolist.music.ui.menu
 
 import android.content.Context
+import android.content.Intent
+import android.media.audiofx.AudioEffect
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.annotation.DrawableRes
@@ -155,6 +159,10 @@ fun PlayerMenu(
     val isListenTogetherGuest = listenTogetherRoleState?.value == com.metrolist.music.listentogether.RoomRole.GUEST
     val pendingSuggestions by listenTogetherManager?.pendingSuggestions?.collectAsState(initial = emptyList())
         ?: remember { mutableStateOf(emptyList()) }
+
+    val systemEqLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { }
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
@@ -684,6 +692,30 @@ fun PlayerMenu(
                                     },
                                     onClick = {
                                         navController.navigate("equalizer")
+                                        onDismiss()
+                                    },
+                                ),
+                            )
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(text = stringResource(R.string.legacy_equalizer)) },
+                                    description = { Text(text = stringResource(R.string.legacy_equalizer_desc)) },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.graphic_eq),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                    },
+                                    onClick = {
+                                        val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                                            putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playerConnection.player.audioSessionId)
+                                            putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                                            putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                                        }
+                                        if (intent.resolveActivity(context.packageManager) != null) {
+                                            systemEqLauncher.launch(intent)
+                                        }
                                         onDismiss()
                                     },
                                 ),

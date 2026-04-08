@@ -491,6 +491,8 @@
     <string name="no_profiles">No equalizer profiles</string>
     <string name="import_profile">Import profile</string>
     <string name="system_equalizer">System equalizer</string>
+    <string name="legacy_equalizer">Legacy Equalizer</string>
+    <string name="legacy_equalizer_desc">Open Android\'s built-in equalizer</string>
     <string name="eq_disabled">Disabled</string>
     <string name="eq_wizard">AutoEQ Wizard</string>
     <string name="eq_download_db">Download AutoEQ database (17 MB)</string>
