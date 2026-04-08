@@ -74,15 +74,15 @@ private fun WizardScreenContent(
                 title = {
                     Text(
                         text = when (state.currentStep) {
-                            WizardStep.BRAND_SELECTION -> "Select Brand"
-                            WizardStep.MODEL_SELECTION -> "Select Model"
-                            WizardStep.VARIANT_SELECTION -> "Select Profiles"
+                            WizardStep.BRAND_SELECTION -> stringResource(R.string.wizard_select_brand)
+                            WizardStep.MODEL_SELECTION -> stringResource(R.string.wizard_select_model)
+                            WizardStep.VARIANT_SELECTION -> stringResource(R.string.wizard_select_profiles)
                         }
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = if (state.canGoBack) onBackClicked else onNavigateBack) {
-                        Icon(painterResource(R.drawable.arrow_back), "Back")
+                        Icon(painterResource(R.drawable.arrow_back), contentDescription = null)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -166,7 +166,7 @@ private fun WizardProgressIndicator(currentStep: WizardStep) {
     ) {
         StepIndicator(
             stepNumber = 1,
-            label = "Brand",
+            label = stringResource(R.string.wizard_step_brand),
             isActive = currentStep == WizardStep.BRAND_SELECTION,
             isCompleted = currentStep.ordinal > WizardStep.BRAND_SELECTION.ordinal
         )
@@ -184,7 +184,7 @@ private fun WizardProgressIndicator(currentStep: WizardStep) {
 
         StepIndicator(
             stepNumber = 2,
-            label = "Model",
+            label = stringResource(R.string.wizard_step_model),
             isActive = currentStep == WizardStep.MODEL_SELECTION,
             isCompleted = currentStep.ordinal > WizardStep.MODEL_SELECTION.ordinal
         )
@@ -202,7 +202,7 @@ private fun WizardProgressIndicator(currentStep: WizardStep) {
 
         StepIndicator(
             stepNumber = 3,
-            label = "Profiles",
+            label = stringResource(R.string.wizard_step_profiles),
             isActive = currentStep == WizardStep.VARIANT_SELECTION,
             isCompleted = false
         )
@@ -322,7 +322,7 @@ private fun BrandSelectionStep(
             .padding(16.dp)
     ) {
         Text(
-            text = "Search for your headphone or earphone brand",
+            text = stringResource(R.string.wizard_search_brand_hint),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -330,8 +330,8 @@ private fun BrandSelectionStep(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchQueryChanged,
-            label = { Text("Brand Name") },
-            placeholder = { Text("e.g., Sony, Bose, Beats") },
+            label = { Text(stringResource(R.string.wizard_brand_name)) },
+            placeholder = { Text(stringResource(R.string.wizard_brand_placeholder)) },
             leadingIcon = {
                 Icon(painterResource(R.drawable.search), contentDescription = null)
             },
@@ -354,7 +354,7 @@ private fun BrandSelectionStep(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No brands found",
+                    text = stringResource(R.string.wizard_no_brands),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -443,7 +443,7 @@ private fun ModelSelectionStep(
             .padding(16.dp)
     ) {
         Text(
-            text = "Search for your $brandName model",
+            text = stringResource(R.string.wizard_search_model_hint, brandName),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -451,8 +451,8 @@ private fun ModelSelectionStep(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchQueryChanged,
-            label = { Text("Model Name") },
-            placeholder = { Text("e.g., Galaxy Buds, QuietComfort 45, WH-1000XM4") },
+            label = { Text(stringResource(R.string.wizard_model_name)) },
+            placeholder = { Text(stringResource(R.string.wizard_model_placeholder)) },
             leadingIcon = {
                 Icon(painterResource(R.drawable.search), contentDescription = null)
             },
@@ -475,7 +475,7 @@ private fun ModelSelectionStep(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No models found",
+                    text = stringResource(R.string.wizard_no_models),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -529,7 +529,7 @@ private fun ModelItem(
                 )
                 if (model.hasMultipleVariants) {
                     Text(
-                        text = "Multiple variants available",
+                        text = stringResource(R.string.wizard_multiple_variants),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -568,7 +568,7 @@ private fun VariantSelectionStep(
         ) {
             item {
                 Text(
-                    text = "Select EQ profiles for $modelName",
+                    text = stringResource(R.string.wizard_select_eq_profiles, modelName),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -636,7 +636,7 @@ private fun VariantSelectionStep(
                     )
                 } else {
                     Text(
-                        text = "Save Profiles",
+                        text = stringResource(R.string.wizard_save_profiles),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
