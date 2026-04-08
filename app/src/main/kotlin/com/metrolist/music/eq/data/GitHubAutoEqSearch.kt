@@ -221,6 +221,8 @@ class GitHubAutoEqSearch(private val context: Context) {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     println("Failed to fetch $repoPath: ${response.code}")
+                    // Fall back to stale cache if available
+                    if (cacheFile.exists()) return cacheFile.readText()
                     return null
                 }
 
@@ -231,6 +233,8 @@ class GitHubAutoEqSearch(private val context: Context) {
             }
         } catch (e: Exception) {
             println("Failed to fetch $repoPath: ${e.message}")
+            // Fall back to stale cache if available
+            if (cacheFile.exists()) return cacheFile.readText()
             null
         }
     }
