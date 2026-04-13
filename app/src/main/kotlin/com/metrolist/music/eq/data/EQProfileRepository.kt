@@ -57,6 +57,7 @@ class EQProfileRepository @Inject constructor(
     val activeProfile: StateFlow<SavedEQProfile?> = _activeProfile.asStateFlow()
 
     companion object {
+        private const val TAG = "EQProfileRepository"
         private const val KEY_PROFILES = "eq_profiles"
         private const val KEY_ACTIVE_PROFILE_ID = "active_profile_id"
     }
@@ -80,7 +81,7 @@ class EQProfileRepository @Inject constructor(
                 _activeProfile.value = loadedProfiles.find { it.id == activeId }
             }
         } catch (e: Exception) {
-            Timber.e(e, "Error loading EQ profiles")
+            Timber.tag(TAG).e(e, "Error loading EQ profiles")
             _profiles.value = emptyList()
             _activeProfile.value = null
         }

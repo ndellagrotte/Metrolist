@@ -38,6 +38,7 @@ class GitHubAutoEqSearch(private val context: Context) {
         .build()
 
     companion object {
+        private const val TAG = "GitHubAutoEqSearch"
         private const val REPO_OWNER = "ndellagrotte"
         private const val REPO_NAME = "AutoEq"
         private const val BRANCH = "master"
@@ -81,7 +82,7 @@ class GitHubAutoEqSearch(private val context: Context) {
             val treeResponse = json.decodeFromString<GitHubTreeResponse>(treeJson)
 
             if (treeResponse.truncated) {
-                Timber.w("GitHub tree response was truncated, some entries may be missing")
+                Timber.tag(TAG).w("GitHub tree response was truncated, some entries may be missing")
             }
 
             // Filter to only ParametricEQ.txt blobs under results/
@@ -104,10 +105,10 @@ class GitHubAutoEqSearch(private val context: Context) {
             entries.clear()
             entries.addAll(newEntries)
             isIndexed = true
-            Timber.d("Indexed ${entries.size} entries from GitHub tree")
+            Timber.tag(TAG).d("Indexed ${entries.size} entries from GitHub tree")
             true
         } catch (e: Exception) {
-            Timber.e(e, "Failed to build index")
+            Timber.tag(TAG).e(e, "Failed to build index")
             false
         }
     }
@@ -163,12 +164,12 @@ class GitHubAutoEqSearch(private val context: Context) {
             val request = Request.Builder()
                 .url(TREE_API_URL)
                 .header("Accept", "application/vnd.github+json")
-                .header("X-GitHub-Api-Version", "2022-11-28")
+                .header("X-GitHub-Api-Version", "2026-03-10")
                 .build()
 
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    Timber.w("GitHub API returned ${response.code}: ${response.message}")
+                    Timber.tag(TAG).w("GitHub API returned ${response.code}: ${response.message}")
                     // Fall back to stale cache if available
                     if (treeFile.exists()) return treeFile.readText()
                     return null
@@ -180,7 +181,7 @@ class GitHubAutoEqSearch(private val context: Context) {
                 body
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to fetch tree from GitHub")
+            Timber.tag(TAG).e(e, "Failed to fetch tree from GitHub")
             // Fall back to stale cache if available
             if (treeFile.exists()) return treeFile.readText()
             null
@@ -204,7 +205,7 @@ class GitHubAutoEqSearch(private val context: Context) {
 
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    Timber.w("Failed to fetch %s: %d", repoPath, response.code)
+                    Timber.tag(TAG).w("Failed to fetch %s: %d", repoPath, response.code)
                     // Fall back to stale cache if available
                     if (cacheFile.exists()) return cacheFile.readText()
                     return null
@@ -216,7 +217,7 @@ class GitHubAutoEqSearch(private val context: Context) {
                 body
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to fetch %s", repoPath)
+            Timber.tag(TAG).e(e, "Failed to fetch %s", repoPath)
             // Fall back to stale cache if available
             if (cacheFile.exists()) return cacheFile.readText()
             null
@@ -243,7 +244,7 @@ class GitHubAutoEqSearch(private val context: Context) {
      */
     fun searchModels(query: String, maxResults: Int = 100): Map<String, List<Entry>> {
         if (!isIndexed) {
-            Timber.w("Index not built. Call buildIndex() first.")
+            Timber.tag(TAG).w("Index not built. Call buildIndex() first.")
             return emptyMap()
         }
 
@@ -293,7 +294,7 @@ class GitHubAutoEqSearch(private val context: Context) {
                 ?: return@withContext null
             ParametricEQParser.parseText(content)
         } catch (e: Exception) {
-            Timber.e(e, "Failed to load EQ for %s", entry.label)
+            Timber.tag(TAG).e(e, "Failed to load EQ for %s", entry.label)
             null
         }
     }

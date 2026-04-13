@@ -22,6 +22,8 @@ import java.io.File
  */
 object ParametricEQParser {
 
+    private const val TAG = "ParametricEQParser"
+
     /**
      * Parse a ParametricEQ file
      */
@@ -124,7 +126,7 @@ object ParametricEQParser {
                 q = q
             )
         } catch (e: Exception) {
-            Timber.w(e, "Failed to parse filter line: %s", line)
+            Timber.tag(TAG).w(e, "Failed to parse filter line: %s", line)
             return null
         }
     }
