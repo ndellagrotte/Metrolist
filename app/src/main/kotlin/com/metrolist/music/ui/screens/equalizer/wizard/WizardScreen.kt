@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,7 +92,7 @@ private fun WizardScreenContent(
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                WizardProgressIndicator(currentStep = state.currentStep)
+                HorizontalDivider()
 
                 AnimatedContent(
                     targetState = state.currentStep,
@@ -135,95 +134,6 @@ private fun WizardScreenContent(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun WizardProgressIndicator(currentStep: WizardStep) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        StepIndicator(
-            stepNumber = 1,
-            label = stringResource(R.string.wizard_step_model),
-            isActive = currentStep == WizardStep.MODEL_SELECTION,
-            isCompleted = currentStep.ordinal > WizardStep.MODEL_SELECTION.ordinal
-        )
-
-        HorizontalDivider(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 8.dp),
-            thickness = DividerDefaults.Thickness, color = if (currentStep.ordinal > WizardStep.MODEL_SELECTION.ordinal) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.outlineVariant
-            }
-        )
-
-        StepIndicator(
-            stepNumber = 2,
-            label = stringResource(R.string.wizard_step_profiles),
-            isActive = currentStep == WizardStep.VARIANT_SELECTION,
-            isCompleted = false
-        )
-    }
-}
-
-@Composable
-private fun StepIndicator(
-    stepNumber: Int,
-    label: String,
-    isActive: Boolean,
-    isCompleted: Boolean
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Surface(
-            modifier = Modifier.size(40.dp),
-            shape = MaterialTheme.shapes.small,
-            color = when {
-                isCompleted -> MaterialTheme.colorScheme.primary
-                isActive -> MaterialTheme.colorScheme.primaryContainer
-                else -> MaterialTheme.colorScheme.surfaceVariant
-            }
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                if (isCompleted) {
-                    Icon(
-                        painter = painterResource(R.drawable.check),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text(
-                        text = stepNumber.toString(),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isActive) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isActive) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            }
-        )
     }
 }
 
