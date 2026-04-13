@@ -58,9 +58,7 @@ class WizardViewModel @Inject constructor(
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
     // STEP 1: BRAND SELECTION
-    // ═══════════════════════════════════════════════════════════
 
     fun onBrandSearchQueryChanged(query: String) {
         _state.update { it.copy(brandSearchQuery = query) }
@@ -120,9 +118,7 @@ class WizardViewModel @Inject constructor(
         searchModels("")
     }
 
-    // ═══════════════════════════════════════════════════════════
     // STEP 2: MODEL SELECTION
-    // ═══════════════════════════════════════════════════════════
 
     fun onModelSearchQueryChanged(query: String) {
         _state.update { it.copy(modelSearchQuery = query) }
@@ -248,9 +244,7 @@ class WizardViewModel @Inject constructor(
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
     // STEP 3: VARIANT SELECTION
-    // ═══════════════════════════════════════════════════════════
 
     fun onVariantToggled(variantId: String) {
         _state.update { currentState ->
@@ -264,9 +258,7 @@ class WizardViewModel @Inject constructor(
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
     // NAVIGATION
-    // ═══════════════════════════════════════════════════════════
 
     fun onNextClicked() {
         when (_state.value.currentStep) {

@@ -262,9 +262,7 @@ private fun StepIndicator(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════
 // STEP 1: BRAND SELECTION
-// ═══════════════════════════════════════════════════════════════
 
 @Composable
 private fun BrandSelectionStep(
@@ -414,9 +412,7 @@ private fun BrandItem(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════
 // STEP 2: MODEL SELECTION
-// ═══════════════════════════════════════════════════════════════
 
 @Composable
 private fun ModelSelectionStep(
@@ -543,9 +539,7 @@ private fun ModelItem(
     }
 }
 
-// ═══════════════════════════════════════════════════════════════
 // STEP 3: VARIANT SELECTION
-// ═══════════════════════════════════════════════════════════════
 
 @Composable
 private fun VariantSelectionStep(

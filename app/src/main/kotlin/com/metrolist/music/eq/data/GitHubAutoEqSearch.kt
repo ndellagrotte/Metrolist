@@ -249,9 +249,7 @@ class GitHubAutoEqSearch(private val context: Context) {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
     // SEARCH / FILTER METHODS
-    // ═══════════════════════════════════════════════════════════
 
     /**
      * Search for headphones by brand name.
@@ -368,9 +366,7 @@ class GitHubAutoEqSearch(private val context: Context) {
      */
     fun getAllEntries(): List<Entry> = entries.toList()
 
-    // ═══════════════════════════════════════════════════════════
     // PRIVATE HELPERS
-    // ═══════════════════════════════════════════════════════════
 
     /**
      * Extract the brand name from a headphone label.
