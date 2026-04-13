@@ -699,8 +699,8 @@ fun PlayerMenu(
                             )
                             add(
                                 Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.legacy_equalizer)) },
-                                    description = { Text(text = stringResource(R.string.legacy_equalizer_desc)) },
+                                    title = { Text(text = stringResource(R.string.system_equalizer)) },
+                                    description = { Text(text = stringResource(R.string.system_equalizer_desc)) },
                                     icon = {
                                         Icon(
                                             painter = painterResource(R.drawable.graphic_eq),
